@@ -1,4 +1,4 @@
-package com.kraya.kraya_platform;
+package com.kraya.platform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

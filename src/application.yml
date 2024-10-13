@@ -1,0 +1,8 @@
+logging.config=classpath:xml/logback-${spring.profiles.active}.xml 
+spring.profiles.active=dev 
+logging.config=classpath:xml/logback-${spring.profiles.active}.xml 
+spring.profiles.active=dev 
+logging.config=classpath:xml/logback-${spring.profiles.active}.xml
+spring.profiles.active=dev
+logging.config=classpath:xml/logback-${spring.profiles.active}.xml
+spring.profiles.active=dev
