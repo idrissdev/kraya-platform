@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<Void> deleteUser(Long userId) {
+    public ResponseEntity<Object> deleteUser(Long userId) {
         logger.info("Deleting user with ID: {}", userId);
         return userRepository.findById(userId)
                 .map(user -> {

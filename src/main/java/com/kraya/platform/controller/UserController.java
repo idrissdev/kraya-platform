@@ -76,7 +76,7 @@ public class UserController extends AbstractController {
      * @return a ResponseEntity indicating the result of the operation
      */
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<Object> deleteUser(@PathVariable Long userId) {
         return userService.deleteUser(userId);
     }
 }
