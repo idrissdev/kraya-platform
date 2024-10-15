@@ -1,16 +1,8 @@
 spring:
   cloud:
     config:
-        enabled: false
-  datasource:
-    # PostgreSQL database connection URL
-    url: jdbc:postgresql://localhost:5435/kraya-platform
-    # Database username
-    username: slimatech
-    # Database password
-    password: slimatech
-    # PostgreSQL driver class name
-    driver-class-name: org.postgresql.Driver
+      enabled: false
+
   flyway:
     # Location of migration scripts
     locations: classpath:db/migration
@@ -23,4 +15,8 @@ spring:
   logging:
     config: classpath:xml/logback-${spring.profiles.active}.xml
   profiles:
-      active: dev
+    active: dev
+  config:
+    activate:
+      on-profile: dev
+    import: "classpath:properties/application-dev.properties"
