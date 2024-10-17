@@ -5,6 +5,7 @@ import com.kraya.platform.dto.UserRegistrationRequest;
 import com.kraya.platform.model.Roles;
 import com.kraya.platform.model.User;
 import com.kraya.platform.repository.UserRepository;
+import com.kraya.platform.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Unit tests for the UserController class.
+ * Unit tests for the {@link UserController} class.
  */
 @WebMvcTest(UserController.class)
 @Import(SecurityConfig.class)
@@ -34,6 +35,9 @@ public class UserControllerTest {
 
     @MockBean
     private PasswordEncoder passwordEncoder;
+
+    @MockBean
+    private UserService userService;
 
     /**
      * Test for successful user registration.
@@ -58,6 +62,8 @@ public class UserControllerTest {
         savedUser.setLastName("User");
         savedUser.setRole(Roles.USER);
 
+        when(userRepository.existsByUsername("testuser")).thenReturn(false);
+        when(userRepository.existsByEmail("testuser@example.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(passwordEncoder.encode(any(String.class))).thenReturn("encodedPassword");
 
