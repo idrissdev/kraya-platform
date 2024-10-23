@@ -4,8 +4,9 @@ import lombok.Data;
 
 @Data
 public class UserRegistrationResponse {
-    private Long userId;
-    private String message;
+
+    private Long userId;  // The ID of the newly registered user
+    private String message;  // Success or error message
 
     public UserRegistrationResponse() {}
 
@@ -13,5 +14,5 @@ public class UserRegistrationResponse {
         this.message = message;
     }
 
-    // Getters and setters
+    // Additional fields can be added as needed
 }

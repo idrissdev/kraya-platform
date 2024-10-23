@@ -1,8 +1,19 @@
 package com.kraya.platform.model;
+
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
+@Data
+@NoArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
     @Id
@@ -24,65 +35,40 @@ public class User {
     @Column(nullable = false)
     private String lastName;
 
+    // New Fields
+    @Column(nullable = true, unique = true)
+    private String phoneNumber;  // Optional, unique
+
+    @Column(nullable = true)
+    private String profilePictureUrl;  // Optional
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Roles role;
+    private Status status = Status.ACTIVE;  // New Enum to manage statuses like ACTIVE, INACTIVE, etc.
 
-    // Getters and Setters
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;  // Automatically managed by Hibernate
 
-    public Long getUserId() {
-        return userId;
-    }
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;  // Automatically managed by Hibernate
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    @Column(nullable = true)
+    private LocalDateTime lastLogin;  // To store the last login time
 
-    public String getUsername() {
-        return username;
-    }
+    // Many-to-Many relationship with Role
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private List<Role> roles;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public Roles getRole() {
-        return role;
-    }
-
-    public void setRole(Roles role) {
-        this.role = role;
+    // Enum for Status
+    public enum Status {
+        ACTIVE,
+        INACTIVE,
+        BANNED
     }
 }

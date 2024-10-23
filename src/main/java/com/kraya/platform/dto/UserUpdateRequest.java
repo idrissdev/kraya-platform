@@ -5,11 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * UserRegistrationRequest contains the data required for user registration.
- */
 @Data
-public class UserRegistrationRequest {
+public class UserUpdateRequest {
 
     @NotBlank(message = "Username is mandatory")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
@@ -32,7 +29,5 @@ public class UserRegistrationRequest {
     @Email(message = "Email should be valid")
     private String email;
 
-    // Optional fields
-    private String phoneNumber;  // Optional, unique
-    private String profilePictureUrl;  // Optional
+    // Additional fields like phone number or profile picture URL can be added here if needed
 }

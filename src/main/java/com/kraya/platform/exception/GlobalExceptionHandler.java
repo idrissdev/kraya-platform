@@ -11,10 +11,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Global exception handler to handle validation errors.
+ * GlobalExceptionHandler handles exceptions thrown in the application.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
 
     /**
      * Handles MethodArgumentNotValidException and returns a structured error response.
@@ -30,5 +31,38 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         return ResponseEntity.badRequest().body(errors);
+    }
+    /**
+     * Handles UserNotFoundException and returns a meaningful response.
+     *
+     * @param ex the exception that was thrown
+     * @return ResponseEntity with error message and HTTP status NOT_FOUND
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    /**
+     * Handles InvalidRoleException and returns a meaningful response.
+     *
+     * @param ex the exception that was thrown
+     * @return ResponseEntity with error message and HTTP status BAD_REQUEST
+     */
+    @ExceptionHandler(InvalidRoleException.class)
+    public ResponseEntity<String> handleInvalidRole(InvalidRoleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
+     * Handles all other exceptions and returns a generic error message.
+     *
+     * @param ex the exception that was thrown
+     * @return ResponseEntity with a generic error message and HTTP status INTERNAL_SERVER_ERROR
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An unexpected error occurred: " + ex.getMessage());
     }
 }

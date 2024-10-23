@@ -2,6 +2,10 @@ package com.kraya.platform.service.impl;
 
 import com.kraya.platform.dto.UserRegistrationRequest;
 import com.kraya.platform.dto.UserRegistrationResponse;
+import com.kraya.platform.dto.UserUpdateRequest;
+import com.kraya.platform.exception.InvalidRoleException;
+import com.kraya.platform.exception.UserNotFoundException;
+import com.kraya.platform.model.AppUser;  // Importing AppUser
 import com.kraya.platform.model.Roles;
 import com.kraya.platform.model.User;
 import com.kraya.platform.repository.UserRepository;
@@ -9,7 +13,6 @@ import com.kraya.platform.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,9 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * UserServiceImpl provides the implementation for user-related operations.
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -32,84 +38,72 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<UserRegistrationResponse> registerUser(UserRegistrationRequest request) {
-        logger.info("Registering user with username: {}", request.getUsername());
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
 
+    @Override
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+    }
+
+    @Override
+    public User create(UserRegistrationRequest request) {
+        // Validate if the user already exists
         if (userRepository.existsByUsername(request.getUsername())) {
-            logger.warn("Username {} already exists", request.getUsername());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new UserRegistrationResponse("Username already exists"));
+            throw new IllegalArgumentException("Username already exists.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            logger.warn("Email {} already exists", request.getEmail());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new UserRegistrationResponse("Email already exists"));
+            throw new IllegalArgumentException("Email already exists.");
         }
 
-        // Validate role
-        try {
-            Roles.valueOf(request.getRole());
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid role: {}", request.getRole());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new UserRegistrationResponse("Invalid role"));
-        }
-
-        var user = new User();
+        // Create an AppUser instance
+        AppUser user = new AppUser();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setRole(Roles.valueOf(request.getRole()));
+        user.setPhoneNumber(request.getPhoneNumber()); // Optional
+        user.setProfilePictureUrl(request.getProfilePictureUrl()); // Optional
+        user.setStatus(User.Status.ACTIVE); // Default status
+        user.setRegistrationDate(LocalDateTime.now()); // Set registration date
 
-        var savedUser = userRepository.save(user);
+        return userRepository.save(user);
+    }
 
-        var response = new UserRegistrationResponse();
-        response.setUserId(savedUser.getUserId());
+    @Override
+    public User update(Long id, UserUpdateRequest request) {
+        User user = findById(id);
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        user.setPhoneNumber(request.getPhoneNumber()); // Update optional fields
+        user.setProfilePictureUrl(request.getProfilePictureUrl()); // Update optional fields
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void delete(Long id) {
+        User user = findById(id);
+        userRepository.delete(user);
+    }
+
+    @Override
+    public ResponseEntity<UserRegistrationResponse> registerUser(UserRegistrationRequest request) {
+        logger.info("Registering user: {}", request.getUsername());
+        AppUser createdUser = (AppUser) create(request);
+        UserRegistrationResponse response = new UserRegistrationResponse();
+        response.setUserId(createdUser.getUserId());
         response.setMessage("User registered successfully");
-
-        logger.info("User registered successfully with ID: {}", savedUser.getUserId());
-        return ResponseEntity.created(URI.create("/users/" + savedUser.getUserId())).body(response);
-    }
-
-    @Override
-    public ResponseEntity<User> getUserById(Long userId) {
-        logger.info("Retrieving user with ID: {}", userId);
-        return userRepository.findById(userId)
-                .map(user -> ResponseEntity.ok().body(user))
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @Override
-    public ResponseEntity<List<User>> getAllUsers() {
-        logger.info("Retrieving all users");
-        var users = userRepository.findAll();
-        return ResponseEntity.ok().body(users);
-    }
-
-    @Override
-    public ResponseEntity<User> updateUser(Long userId, UserRegistrationRequest request) {
-        logger.info("Updating user with ID: {}", userId);
-        return userRepository.findById(userId)
-                .map(user -> {
-                    user.setUsername(request.getUsername());
-                    user.setPassword(passwordEncoder.encode(request.getPassword()));
-                    user.setEmail(request.getEmail());
-                    user.setFirstName(request.getFirstName());
-                    user.setLastName(request.getLastName());
-                    user.setRole(Roles.valueOf(request.getRole()));
-                    var updatedUser = userRepository.save(user);
-                    return ResponseEntity.ok().body(updatedUser);
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    @Override
-    public ResponseEntity<Object> deleteUser(Long userId) {
-        logger.info("Deleting user with ID: {}", userId);
-        return userRepository.findById(userId)
-                .map(user -> {
-                    userRepository.delete(user);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        return ResponseEntity.created(URI.create("/api/users/" + createdUser.getUserId())).body(response);
     }
 }
