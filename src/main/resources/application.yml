@@ -1,0 +1,17 @@
+spring:
+  profile:
+    active: dev
+  cloud:
+    config:
+      enabled: false
+  flyway:
+    # Location of migration scripts
+    locations: classpath:db/migration
+    # Encoding of SQL files
+    encoding: UTF-8
+    # User to use for migrations (defaults to spring.datasource.username)
+    user: kraya
+    # Password to use for migrations (defaults to spring.datasource.password)
+    password: slimatech
+  logging:
+    config: classpath:xml/logback-${spring.profiles.active}.xml
