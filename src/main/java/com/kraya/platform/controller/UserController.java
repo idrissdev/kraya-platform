@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/users")  // Base URL for user-related operations
-public class UserController extends GenericController<User> {
+public class UserController { //extends GenericController<User> {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class); // Logger for this class
 
@@ -34,7 +34,7 @@ public class UserController extends GenericController<User> {
         this.userService = userService;
     }
 
-    @Override
+   // @Override
     protected UserService getService() {
         return userService;
     }
@@ -48,7 +48,13 @@ public class UserController extends GenericController<User> {
     @PostMapping("/register")
     public ResponseEntity<UserRegistrationResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         logger.info("Received registration request for username: {}", request.getUsername());
-        return userService.registerUser(request);
+
+        try {
+            return userService.registerUser(request);
+        } catch (IllegalArgumentException e) {
+            logger.error("Registration failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new UserRegistrationResponse(e.getMessage()));
+        }
     }
 
     /**
@@ -60,7 +66,8 @@ public class UserController extends GenericController<User> {
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable Long userId) {
         logger.info("Fetching user with ID: {}", userId);
-        return ResponseEntity.ok(getService().findById(userId));
+        User user = getService().findById(userId);
+        return ResponseEntity.ok(user);
     }
 
     /**
@@ -73,10 +80,19 @@ public class UserController extends GenericController<User> {
     @PutMapping("/{userId}")
     public ResponseEntity<UserRegistrationResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserUpdateRequest request) {
         logger.info("Updating user with ID: {}", userId);
-        User updatedUser = getService().update(userId, request);
-        UserRegistrationResponse response = new UserRegistrationResponse();
-        response.setMessage("User updated successfully");
-        return ResponseEntity.ok(response);
+
+        try {
+            User updatedUser = getService().update(userId, request);
+            UserRegistrationResponse response = new UserRegistrationResponse();
+            response.setMessage("User updated successfully");
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            logger.error("Update failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserRegistrationResponse(e.getMessage()));
+        } catch (InvalidRoleException e) {
+            logger.error("Invalid role error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new UserRegistrationResponse(e.getMessage()));
+        }
     }
 
     /**
@@ -88,8 +104,14 @@ public class UserController extends GenericController<User> {
     @DeleteMapping("/{userId}")
     public ResponseEntity<UserDeletionResponse> deleteUser(@PathVariable Long userId) {
         logger.info("Deleting user with ID: {}", userId);
-        getService().delete(userId);
-        return ResponseEntity.noContent().build();
+
+        try {
+            getService().delete(userId);
+            return ResponseEntity.noContent().build();
+        } catch (UserNotFoundException e) {
+            logger.error("Deletion failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserDeletionResponse(e.getMessage()));
+        }
     }
 
     /**

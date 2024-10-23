@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * UserUpdateRequest contains the data required for updating a user.
+ */
 @Data
 public class UserUpdateRequest {
 
@@ -12,9 +15,8 @@ public class UserUpdateRequest {
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
-    @NotBlank(message = "Password is mandatory")
-    @Size(min = 6, message = "Password must be at least 6 characters long")
-    private String password;
+    @Email(message = "Email should be valid")
+    private String email;
 
     @NotBlank(message = "First name is mandatory")
     private String firstName;
@@ -22,12 +24,9 @@ public class UserUpdateRequest {
     @NotBlank(message = "Last name is mandatory")
     private String lastName;
 
-    @NotBlank(message = "Role is mandatory")
-    private String role;
+    private String phoneNumber;  // Optional, unique
 
-    @NotBlank(message = "Email is mandatory")
-    @Email(message = "Email should be valid")
-    private String email;
+    private String profilePictureUrl;  // Optional
 
-    // Additional fields like phone number or profile picture URL can be added here if needed
+    private String password;  // Optional, for updating password
 }

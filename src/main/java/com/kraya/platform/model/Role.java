@@ -20,5 +20,10 @@ public class Role {
     @Column(nullable = false, unique = true)
     private String name;  // e.g., "USER", "ADMIN", etc.
 
+    // Constructor that takes a role name
+    public Role(String name) {
+        this.name = name;
+    }
+
     // Additional fields can be added here if needed
 }

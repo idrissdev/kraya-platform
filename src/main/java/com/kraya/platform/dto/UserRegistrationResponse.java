@@ -1,5 +1,6 @@
 package com.kraya.platform.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
@@ -11,6 +12,11 @@ public class UserRegistrationResponse {
     public UserRegistrationResponse() {}
 
     public UserRegistrationResponse(String message) {
+        this.message = message;
+    }
+
+    public UserRegistrationResponse(Long id, String message) {
+        this.userId = id;
         this.message = message;
     }
 

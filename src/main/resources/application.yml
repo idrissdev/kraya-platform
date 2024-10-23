@@ -4,19 +4,15 @@ spring:
       enabled: false
 
   flyway:
-    # Location of migration scripts
     locations: classpath:db/migration
-    # Encoding of SQL files
     encoding: UTF-8
-    # User to use for migrations (defaults to spring.datasource.username)
     user: slimatech
-    # Password to use for migrations (defaults to spring.datasource.password)
     password: slimatech
+
   logging:
     config: classpath:xml/logback-${spring.profiles.active}.xml
+
   profiles:
-    active: dev
-  config:
-    activate:
-      on-profile: dev
-    import: "classpath:properties/application-dev.properties"
+    active: dev  # Ensure this matches the active profile you're working with
+
+# Remove the duplicate config entry

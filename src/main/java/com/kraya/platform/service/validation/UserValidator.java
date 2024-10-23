@@ -1,3 +1,7 @@
+package com.kraya.platform.service.validation;
+
+import com.kraya.platform.model.Roles;
+
 public class UserValidator {
 
     public static boolean isValidRole(String role) {
