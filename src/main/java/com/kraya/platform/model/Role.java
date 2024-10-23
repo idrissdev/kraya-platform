@@ -2,10 +2,15 @@ package com.kraya.platform.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Role represents a user role in the system.
+ */
 @Entity
 @Table(name = "roles")
 @Data
+@NoArgsConstructor
 public class Role {
 
     @Id
@@ -13,7 +18,7 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name;  // Role name, e.g., "ADMIN", "USER", etc.
+    private String name;  // e.g., "USER", "ADMIN", etc.
 
-    // Additional fields related to roles can be added here
+    // Additional fields can be added here if needed
 }

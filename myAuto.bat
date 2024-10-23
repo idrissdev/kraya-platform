@@ -1,42 +1,27 @@
 @echo off
-set DTO_PATH=C:\Users\Production\IdeaProjects\kraya-platform\src\main\java\com\kraya\platform\dto
+SET "PROJECT_DIR=C:\Users\Production\IdeaProjects\kraya-platform"
+SET "MODEL_DIR=%PROJECT_DIR%\src\main\java\com\kraya\platform\model"
+SET "REPOSITORY_DIR=%PROJECT_DIR%\src\main\java\com\kraya\platform\repository"
+SET "SERVICE_DIR=%PROJECT_DIR%\src\main\java\com\kraya\platform\service"
+SET "SERVICE_IMPL_DIR=%PROJECT_DIR%\src\main\java\com\kraya\platform\service\impl"
 
-echo Filling UserRegistrationRequest.java...
+REM Create directories if they do not exist
+mkdir "%MODEL_DIR%"
+mkdir "%REPOSITORY_DIR%"
+mkdir "%SERVICE_DIR%"
+mkdir "%SERVICE_IMPL_DIR%"
 
-(
-    echo package com.kraya.platform.dto;
-    echo.
-    echo import jakarta.validation.constraints.Email;
-    echo import jakarta.validation.constraints.NotBlank;
-    echo import jakarta.validation.constraints.Size;
-    echo import lombok.Data;
-    echo.
-    echo @Data;
-    echo public class UserRegistrationRequest ^{
-    echo.
-    echo     @NotBlank(message = "Username is mandatory")
-    echo     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
-    echo     private String username;
-    echo.
-    echo     @NotBlank(message = "Password is mandatory")
-    echo     @Size(min = 6, message = "Password must be at least 6 characters long")
-    echo     private String password;
-    echo.
-    echo     @NotBlank(message = "First name is mandatory")
-    echo     private String firstName;
-    echo.
-    echo     @NotBlank(message = "Last name is mandatory")
-    echo     private String lastName;
-    echo.
-    echo     @NotBlank(message = "Role is mandatory")
-    echo     private String role;
-    echo.
-    echo     @NotBlank(message = "Email is mandatory")
-    echo     @Email(message = "Email should be valid")
-    echo     private String email;
-    echo.
-    echo     // Optionally add more fields like phone number or profile picture URL here if needed
-    echo ^}
-) > "%DTO_PATH%\UserRegistrationRequest.java"
+REM Create empty model file for Role
+type nul > "%MODEL_DIR%\Role.java"
 
-echo UserRegistrationRequest.java has been filled.
+REM Create empty repository file for Role
+type nul > "%REPOSITORY_DIR%\RoleRepository.java"
+
+REM Create empty service file for Role
+type nul > "%SERVICE_DIR%\RoleService.java"
+
+REM Create empty service implementation file for Role
+type nul > "%SERVICE_IMPL_DIR%\RoleServiceImpl.java"
+
+echo All directories and empty files for Role have been created.
+pause
