@@ -1,11 +1,13 @@
 package com.kraya.platform.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 public class UserRegistrationResponse {
-    private Long userId;
-    private String message;
+
+    private Long userId;  // The ID of the newly registered user
+    private String message;  // Success or error message
 
     public UserRegistrationResponse() {}
 
@@ -13,5 +15,10 @@ public class UserRegistrationResponse {
         this.message = message;
     }
 
-    // Getters and setters
+    public UserRegistrationResponse(Long id, String message) {
+        this.userId = id;
+        this.message = message;
+    }
+
+    // Additional fields can be added as needed
 }
