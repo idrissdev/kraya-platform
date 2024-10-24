@@ -1,6 +1,5 @@
 package com.kraya.platform.controller;
 
-import com.kraya.platform.dto.UserDeletionResponse;
 import com.kraya.platform.dto.UserRegistrationRequest;
 import com.kraya.platform.dto.UserRegistrationResponse;
 import com.kraya.platform.dto.UserUpdateRequest;
@@ -8,24 +7,28 @@ import com.kraya.platform.exception.InvalidRoleException;
 import com.kraya.platform.exception.UserNotFoundException;
 import com.kraya.platform.model.User;
 import com.kraya.platform.service.UserService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * UserController handles user-related HTTP requests, providing endpoints
  * for user registration, retrieval, updating, and deletion.
  */
 @RestController
-@RequestMapping("/api/users")  // Base URL for user-related operations
-public class UserController { //extends GenericController<User> {
+@RequestMapping("/api/users")
+public class UserController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class); // Logger for this class
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -34,23 +37,19 @@ public class UserController { //extends GenericController<User> {
         this.userService = userService;
     }
 
-   // @Override
-    protected UserService getService() {
-        return userService;
-    }
-
     /**
      * Registers a new user.
      *
      * @param request the user registration request containing necessary data
-     * @return ResponseEntity with user registration response
+     * @return ResponseEntity with user registration response and created status
      */
     @PostMapping("/register")
     public ResponseEntity<UserRegistrationResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         logger.info("Received registration request for username: {}", request.getUsername());
 
         try {
-            return userService.registerUser(request);
+            ResponseEntity<UserRegistrationResponse> response = userService.registerUser(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response.getBody());
         } catch (IllegalArgumentException e) {
             logger.error("Registration failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new UserRegistrationResponse(e.getMessage()));
@@ -61,12 +60,15 @@ public class UserController { //extends GenericController<User> {
      * Retrieves a user by ID.
      *
      * @param userId the ID of the user to retrieve
-     * @return ResponseEntity containing the user data
+     * @return ResponseEntity containing the user data if found, otherwise Not Found status
      */
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable Long userId) {
         logger.info("Fetching user with ID: {}", userId);
-        User user = getService().findById(userId);
+        User user = userService.findById(userId);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(user);
     }
 
@@ -75,17 +77,15 @@ public class UserController { //extends GenericController<User> {
      *
      * @param userId  the ID of the user to update
      * @param request the user update request containing updated data
-     * @return ResponseEntity with updated user response
+     * @return ResponseEntity with a success message and OK status if update is successful, otherwise Not Found or Bad Request status
      */
     @PutMapping("/{userId}")
     public ResponseEntity<UserRegistrationResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserUpdateRequest request) {
         logger.info("Updating user with ID: {}", userId);
 
         try {
-            User updatedUser = getService().update(userId, request);
-            UserRegistrationResponse response = new UserRegistrationResponse();
-            response.setMessage("User updated successfully");
-            return ResponseEntity.ok(response);
+            User updatedUser = userService.update(userId, request);
+            return ResponseEntity.ok(new UserRegistrationResponse(updatedUser.getUserId(), "User updated successfully"));
         } catch (UserNotFoundException e) {
             logger.error("Update failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserRegistrationResponse(e.getMessage()));
@@ -99,18 +99,18 @@ public class UserController { //extends GenericController<User> {
      * Deletes a user by ID.
      *
      * @param userId the ID of the user to delete
-     * @return ResponseEntity indicating the result of the deletion operation
+     * @return ResponseEntity with No Content status if deletion is successful, otherwise Not Found status
      */
     @DeleteMapping("/{userId}")
-    public ResponseEntity<UserDeletionResponse> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         logger.info("Deleting user with ID: {}", userId);
 
         try {
-            getService().delete(userId);
+            userService.delete(userId);
             return ResponseEntity.noContent().build();
         } catch (UserNotFoundException e) {
             logger.error("Deletion failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserDeletionResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -136,5 +136,22 @@ public class UserController { //extends GenericController<User> {
     public ResponseEntity<String> handleInvalidRole(InvalidRoleException ex) {
         logger.warn("Invalid role error: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
+     * Handles MethodArgumentNotValidException and returns validation errors.
+     *
+     * @param ex the exception that was thrown
+     * @return ResponseEntity with validation error messages and HTTP status BAD_REQUEST
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }
