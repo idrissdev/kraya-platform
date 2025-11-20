@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: kraya-postgres
+    environment:
+      POSTGRES_DB: kraya_platform
+      POSTGRES_USER: kraya
+      POSTGRES_PASSWORD: slimatech
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kraya-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kraya"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kraya Platform API
+  kraya-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kraya-api
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kraya_platform
+      SPRING_DATASOURCE_USERNAME: kraya
+      SPRING_DATASOURCE_PASSWORD: slimatech
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: true
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kraya-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  kraya-network:
+    driver: bridge
